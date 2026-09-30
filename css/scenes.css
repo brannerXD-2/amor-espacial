@@ -53,6 +53,22 @@
   }
 }
 
+/* An invisible, generous target over the point of light: a real button, so a tap always counts. */
+.umbral__enter {
+  position: absolute;
+  left: 50%;
+  top: 66%;
+  width: 104px;
+  height: 104px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: transparent;
+}
+
+.umbral__enter:disabled {
+  pointer-events: none;
+}
+
 .umbral__hint {
   position: absolute;
   left: 0;

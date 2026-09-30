@@ -14,12 +14,22 @@
   pointer-events: none;
 }
 
-.hud.is-visible {
+.hud.is-visible,
+.hud.is-controls {
   opacity: 1;
 }
 
-.hud:not(.is-visible) .hud__btn {
+.hud:not(.is-visible):not(.is-controls) .hud__btn {
   pointer-events: none;
+}
+
+/* Until the journey starts only the corner buttons show; the map fades in later. */
+.hud:not(.is-visible) .hud__map {
+  opacity: 0;
+}
+
+.hud__map {
+  transition: opacity 2s var(--ease-out);
 }
 
 .hud__btn {

@@ -6,7 +6,7 @@
 export const CONTENT = {
   umbral: {
     title: 'Hay cosas que la distancia no sabe medir.',
-    hint: 'mantén presionado para entrar',
+    hint: 'toca para entrar',
     soundOn: 'con sonido',
     soundOff: 'en silencio',
   },

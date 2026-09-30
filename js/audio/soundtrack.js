@@ -45,6 +45,7 @@ export class Soundtrack {
     this.current = 0;
     this.started = false; // audio is really playing (or resuming)
     this.starting = false; // play() requested, browser has not answered yet
+    this.requestedAt = 0;
     this.suspended = false; // paused only because the tab is hidden
     this.expectPause = false;
     this.announced = false;
@@ -125,14 +126,18 @@ export class Soundtrack {
   }
 
   /** Must run inside a user gesture. Safe to call as often as you like. */
-  prime() {
-    if (!this.wanted || this.started || this.starting) return;
+  prime({ force = false } = {}) {
+    if (!this.wanted || this.started) return;
+    // A request that has been pending for a few seconds is not going to answer: ask again.
+    // `force` is for the deliberate tap that opens the experience: always ask again.
+    if (this.starting && !force && performance.now() - this.requestedAt < 3500) return;
     this.#play();
   }
 
   #play() {
     const { el } = this;
     this.starting = true;
+    this.requestedAt = performance.now();
     if (this.canFade) {
       el.volume = 0;
       this.current = 0;

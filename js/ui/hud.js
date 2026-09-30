@@ -99,6 +99,11 @@ export class Hud {
     this.mapSvg.append(this.here);
   }
 
+  /** The corner buttons (sound, tilt) appear first; the map of the journey comes later. */
+  showControls() {
+    this.root.classList.add('is-controls');
+  }
+
   showMap(visible = true) {
     this.root.classList.toggle('is-visible', visible);
   }

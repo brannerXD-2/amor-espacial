@@ -1,29 +1,40 @@
 import { COLORS } from '../config.js';
 import { CONTENT } from '../content.js';
 import { drawGlow, drawPoint } from '../engine/sprites.js';
-import { sleep, tween, until } from '../util/async.js';
-import { clamp, easeInOut, easeOut, smoothstep, TAU } from '../util/math.js';
+import { sleep, tween } from '../util/async.js';
+import { clamp, damp, easeInOut, easeOut, smoothstep, TAU } from '../util/math.js';
 
-const HOLD_SECONDS = 1.8;
+const RAMP_SECONDS = 0.9;
 
-/** The first thing on screen: a quiet point that fills with light while you hold it. */
+/**
+ * The first thing on screen: a quiet point of light. One tap on it and the sky rushes open.
+ *
+ * It is a real tap (a <button>, so the browser delivers a proper `click`) rather than a press
+ * and hold: on iPhone that is the only gesture Safari reliably accepts for starting music.
+ */
 class EntryPoint {
   constructor(app) {
     this.app = app;
     this.alpha = 0;
     this.progress = 0;
     this.burst = 0;
+    this.triggered = false;
+    this.pressing = false; // finger or pointer is down on the button
+    this.pressed = 0; // smoothed, for a little feedback under the finger
     this.z = 8;
   }
 
+  trigger() {
+    this.triggered = true;
+  }
+
   update(dt) {
-    const { input, stage, sound } = this.app;
-    if (this.progress < 1) {
-      const pressing = input.state.down && this.alpha > 0.6;
-      this.progress = clamp(this.progress + (pressing ? dt / HOLD_SECONDS : -dt / 1.5));
-    }
-    if (this.progress >= 1) return; // from here on the scene drives the arrival
-    const eased = smoothstep(0.12, 1, this.progress);
+    const { stage, sound } = this.app;
+    this.pressed = damp(this.pressed, this.pressing ? 1 : 0, 14, dt);
+    if (!this.triggered || this.progress >= 1) return; // after that the scene drives the arrival
+
+    this.progress = clamp(this.progress + dt / RAMP_SECONDS);
+    const eased = smoothstep(0, 1, this.progress);
     if (!this.app.reduced) stage.starfield.warp = eased * 0.85;
     sound.setLevel(eased * 0.55);
   }
@@ -34,15 +45,17 @@ class EntryPoint {
     const a = this.alpha;
     const breath = 0.85 + 0.15 * Math.sin(t * 1.4);
     const p = this.progress;
+    const press = this.pressed;
 
-    drawGlow(ctx, x, y, 90 + p * 110, a * (0.12 + p * 0.35) * breath, COLORS.warm);
-    drawPoint(ctx, x, y, { r: 3 + p * 2.5, a: a * (0.75 + p * 0.25), rgb: COLORS.warm, halo: 8 + p * 4, flare: true });
+    drawGlow(ctx, x, y, 90 + p * 110 + press * 14, a * (0.12 + p * 0.35 + press * 0.12) * breath, COLORS.warm);
+    drawPoint(ctx, x, y, { r: 3 + p * 2.5 + press * 0.8, a: a * (0.75 + p * 0.25), rgb: COLORS.warm, halo: 8 + p * 4, flare: true });
 
     ctx.lineWidth = 1;
     ctx.strokeStyle = 'rgba(236,232,223,1)';
-    ctx.globalAlpha = a * 0.16;
+    // A slow breathing ring invites the tap; it tightens under the finger and fills once tapped.
+    ctx.globalAlpha = a * (0.16 + 0.1 * (0.5 + 0.5 * Math.sin(t * 2)) * (1 - p) + press * 0.2);
     ctx.beginPath();
-    ctx.arc(x, y, 30, 0, TAU);
+    ctx.arc(x, y, 30 - press * 3, 0, TAU);
     ctx.stroke();
     if (p > 0.005) {
       ctx.globalAlpha = a * 0.8;
@@ -113,12 +126,34 @@ function writeWords(el, text) {
   return [...el.querySelectorAll('.word')];
 }
 
+/** Resolves on the tap (click) that opens the experience; also feeds the little press feedback. */
+function waitForEntry(button, entry, sound) {
+  return new Promise((resolve) => {
+    const release = () => (entry.pressing = false);
+    button.addEventListener('pointerdown', () => (entry.pressing = true));
+    for (const type of ['pointerup', 'pointerleave', 'pointercancel']) button.addEventListener(type, release);
+    button.addEventListener(
+      'click',
+      () => {
+        // The music is started right here, inside the click itself, where every browser
+        // (iPhone Safari included) accepts it. No timer, no promise before it.
+        sound.prime({ force: true });
+        entry.trigger();
+        button.disabled = true;
+        resolve();
+      },
+      { once: true },
+    );
+  });
+}
+
 export async function runUmbral(app) {
-  const { stage, sound } = app;
+  const { stage, sound, hud } = app;
   const root = document.getElementById('umbral');
   const title = document.getElementById('umbral-title');
   const hint = document.getElementById('umbral-hint');
   const soundBtn = document.getElementById('umbral-sound');
+  const enterBtn = document.getElementById('umbral-enter');
   const words = writeWords(title, CONTENT.umbral.title);
   hint.textContent = CONTENT.umbral.hint;
 
@@ -132,7 +167,7 @@ export async function runUmbral(app) {
     syncSoundLabel();
   });
 
-  // Start fetching the music now (if wanted) so the first gesture can play it instantly.
+  // Start fetching the music now (if wanted) so the first tap can play it instantly.
   sound.warmUp();
 
   stage.setBackdropBrightness(0);
@@ -157,17 +192,21 @@ export async function runUmbral(app) {
   await sleep(700);
   hint.classList.add('is-visible');
   soundBtn.classList.add('is-visible');
+  enterBtn.disabled = false;
+  enterBtn.focus({ preventScroll: true }); // Space / Enter also open it
 
-  await until(() => entry.progress >= 1);
+  await waitForEntry(enterBtn, entry, sound);
+  hud.showControls(); // the sound icon is there from now on, in case the browser blocked the music
 
   root.classList.add('is-leaving');
   words.forEach((w) => w.classList.remove('is-in'));
   words.forEach((w) => w.classList.add('is-out'));
 
-  // Arrival: light floods in, then the streaks relax into a still sky.
+  // Arrival: the streaks build up, light floods in, then everything relaxes into a still sky.
+  await sleep(RAMP_SECONDS * 1000);
   tween(1300, (e) => (entry.burst = e < 0.4 ? e / 0.4 : 1 - (e - 0.4) / 0.6));
   sound.setLevel(0.55);
-  await sleep(800);
+  await sleep(500);
   await tween(1700, (e) => {
     stage.starfield.warp = (1 - e) * 0.85;
     entry.alpha = 1 - e;

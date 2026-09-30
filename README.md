@@ -8,7 +8,7 @@ La idea: dos personas lejos la una de la otra pueden seguir formando parte del m
 
 | Momento | Qué pasa | Interacción |
 | --- | --- | --- |
-| **Umbral** | Una frase y un punto de luz. | Mantener presionado para entrar (el sonido crece con el gesto). |
+| **Umbral** | Una frase y un punto de luz. | Tocar el punto de luz para entrar (un toque corto: es el gesto que iPhone acepta para arrancar la música). |
 | **Distancia** | Dos puntos lejanos, una regla que cuenta, un hilo muy fino. | Mantener presionado: el hilo se dibuja desde los dos extremos. |
 | **Viaje** | Se recorre el espacio entre los dos puntos. Un punto en el borde de la pantalla señala la siguiente estrella. | Arrastrar (con inercia), tocar la brújula para que te lleve, tocar la estrella. |
 | **Admiración** | Una estrella desenfocada. | Mantener presionado para enfocar. |

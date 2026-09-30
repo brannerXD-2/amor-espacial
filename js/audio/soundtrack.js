@@ -172,7 +172,7 @@ export class Soundtrack {
    * Switches between 'calm' (hypnotic loop) and 'drop' (the synthesizers). Safe to call any
    * time; if the music is not playing yet the choice is simply remembered.
    */
-  cue(name) {
+  cue(name, { instant = false } = {}) {
     this.wantedTrack = name;
     if (name === this.track && !this.swap) return;
     if (!this.started) {
@@ -180,7 +180,10 @@ export class Soundtrack {
       return;
     }
     if (this.swap) {
-      if (!this.swap.busy) this.swap.to = name;
+      if (!this.swap.busy) {
+        this.swap.to = name;
+        this.swap.instant = instant;
+      }
       return;
     }
     if (!this.canFade) {
@@ -188,7 +191,9 @@ export class Soundtrack {
       this.#swapTrack(name);
       return;
     }
-    this.swap = { to: name, busy: false }; // update() fades out, then swaps
+    // update() fades out, then swaps. `instant` is for a hit that must land right now:
+    // a very short fade out, and the new track starts at full level instead of rising.
+    this.swap = { to: name, busy: false, instant };
   }
 
   /** Points the element at a track without playing it. */
@@ -199,12 +204,13 @@ export class Soundtrack {
     this.el.loop = name !== 'drop';
   }
 
-  #swapTrack(name) {
+  #swapTrack(name, instant = false) {
     const { el } = this;
     this.#load(name);
     if (this.canFade) {
-      el.volume = 0;
-      this.current = 0;
+      const target = this.wanted ? clamp(this.level) : 0;
+      this.current = instant ? target : 0;
+      el.volume = this.current;
     }
     Promise.resolve(el.play()).then(
       () => {
@@ -280,11 +286,11 @@ export class Soundtrack {
 
     // Changing track: fade the current one out, swap, and let the new one rise from silence.
     if (this.swap && !this.swap.busy) {
-      this.current = damp(this.current, 0, 6, dt);
+      this.current = damp(this.current, 0, this.swap.instant ? 16 : 6, dt);
       this.el.volume = clamp(this.current);
       if (this.current < 0.03) {
         this.swap.busy = true;
-        this.#swapTrack(this.swap.to);
+        this.#swapTrack(this.swap.to, this.swap.instant);
       }
       return;
     }

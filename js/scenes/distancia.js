@@ -2,7 +2,7 @@ import { COLORS } from '../config.js';
 import { CONTENT } from '../content.js';
 import { drawGlow, drawLine } from '../engine/sprites.js';
 import { sleep, tween, until } from '../util/async.js';
-import { clamp, easeInOut, lerp } from '../util/math.js';
+import { clamp, easeInOut, easeOut, lerp } from '../util/math.js';
 import { mapView } from './journey.js';
 import { tweenProp } from './nodes/shared.js';
 
@@ -138,26 +138,34 @@ export async function runDistancia(app, journey) {
   await fragments.play(line);
   hud.setLabel('');
 
-  // Down from the map into the journey. "Ven" is the cue for the synthesizers: the music
-  // leaves its hypnotic loop and, a couple of seconds later, the big moment arrives as the
-  // camera settles at Branner's point — whatever pace the reader took to get here.
-  await fragments.play(dive);
-  app.sound.cue('drop');
-  app.sound.setLevel(0.7);
-  tween(2600, (e) => {
-    thread.ruler = 1 - e;
-    thread.alpha = 1 - e;
+  // Down from the map into the journey. The tap that follows "Ven" is the cue: the same
+  // instant the flight begins, the hypnotic loop is cut and the synthesizers hit — whatever
+  // pace the reader took to get here. The flight launches fast, as if the sound threw it.
+  let flight = Promise.resolve();
+  await fragments.play(dive, {
+    onAdvance: () => {
+      app.sound.cue('drop', { instant: true });
+      app.sound.setLevel(0.7);
+      tween(2600, (e) => {
+        thread.ruler = 1 - e;
+        thread.alpha = 1 - e;
+      });
+      if (!app.reduced) pulseWarp(stage);
+      flight = camera.flyTo(
+        { x: journey.a.x, y: journey.a.y, zoom: 1, anchorY: 0.5 },
+        app.reduced ? 700 : 3800,
+        easeOut,
+      );
+    },
   });
-  if (!app.reduced) pulseWarp(stage);
-  const [ax, ay] = [journey.a.x, journey.a.y];
-  await camera.flyTo({ x: ax, y: ay, zoom: 1, anchorY: 0.5 }, app.reduced ? 700 : 3600);
+  await flight;
   stage.remove(thread);
   return thread;
 }
 
-/** One quick surge of starlight, timed to the moment the synthesizers enter. */
+/** One quick surge of starlight, timed to the moment the synthesizers hit. */
 async function pulseWarp(stage) {
-  await sleep(2500);
-  await tween(1500, (e) => (stage.starfield.warp = Math.sin(Math.PI * e) * 0.5));
+  await sleep(300);
+  await tween(1400, (e) => (stage.starfield.warp = Math.sin(Math.PI * e) * 0.5));
   stage.starfield.warp = 0;
 }

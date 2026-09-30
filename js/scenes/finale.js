@@ -111,7 +111,7 @@ export async function runFinale(app, system) {
 
   const worldStart = world.alpha;
   const dimming = tween(
-    9500,
+    6000,
     (e) => {
       stage.setBackdropBrightness(lerp(1, FINAL_BACKDROP, e));
       world.alpha = worldStart * (1 - e);
@@ -120,29 +120,29 @@ export async function runFinale(app, system) {
     easeInOut,
   );
 
-  await sleep(1400);
-  tween(2600, (e) => (system.trailAlpha = 1 - e));
+  await sleep(700);
+  tween(1600, (e) => (system.trailAlpha = 1 - e));
+  await sleep(1200);
+  system.startRelease(4.5);
   await sleep(2200);
-  system.startRelease(7);
-  await sleep(3400);
-  await tweenProp(points.b, 'alpha', 0, 2600); // only Branner's light is left
+  await tweenProp(points.b, 'alpha', 0, 1600); // only Branner's light is left
   await dimming;
-  await sleep(3200);
-  await tweenProp(points.b, 'alpha', 1, 4200); // and then, far away, another one
-  await sleep(2400);
+  await sleep(1500);
+  await tweenProp(points.b, 'alpha', 1, 2600); // and then, far away, another one
+  await sleep(1000);
 
   const constellation = stage.add(new FinalConstellation());
-  await tween(5200, (e) => (constellation.lit = e * 6));
-  await sleep(2200);
+  await tween(3200, (e) => (constellation.lit = e * 6));
+  await sleep(900);
 
   line.classList.add('is-in');
-  await sleep(5200);
+  await sleep(3200);
   name.classList.add('is-in');
-  await sleep(4200);
+  await sleep(2600);
   love.classList.add('is-in');
-  await sleep(4600);
+  await sleep(2800);
   sign.classList.add('is-in');
-  await sleep(3000);
+  await sleep(1800);
   footer.classList.add('is-visible');
 
   return { constellation, system };

@@ -33,12 +33,16 @@ export class Fragments {
     resolve();
   }
 
-  /** Plays fragments in order, each waiting for a tap. */
-  play(fragments, { pos = 'center' } = {}) {
+  /**
+   * Plays fragments in order, each waiting for a tap. `onAdvance(index)` runs at the moment of
+   * the tap, before the text finishes fading out — for things that must start with the tap.
+   */
+  play(fragments, { pos = 'center', onAdvance } = {}) {
     return this.#enqueue(async () => {
-      for (const lines of fragments) {
+      for (const [index, lines] of fragments.entries()) {
         await this.#show(lines, pos);
         await this.#waitForTap(readingMs(lines));
+        onAdvance?.(index);
         await this.#hide();
       }
     });

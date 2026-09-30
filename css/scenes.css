@@ -140,9 +140,9 @@
   filter: blur(12px);
   transform: translateY(8px);
   transition:
-    opacity 2.6s var(--ease-out),
-    filter 2.6s var(--ease-out),
-    transform 2.6s var(--ease-out);
+    opacity 1.8s var(--ease-out),
+    filter 1.8s var(--ease-out),
+    transform 1.8s var(--ease-out);
   text-shadow: 0 0 30px rgba(4, 5, 11, 0.9);
 }
 

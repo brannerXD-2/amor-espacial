@@ -56,7 +56,7 @@ export const NEBULA = {
 /**
  * The song, cut in three so it can follow a reader of any pace:
  * - `calm`: the hypnotic opening (40 s, seamless loop). Also used for the ending.
- * - `drop`: starts about 2.3 s before the synthesizers enter and plays once (2:42).
+ * - `drop`: the synthesizers hit 0.15 s after it starts; plays once (2:40).
  * - `body`: a long seamless loop of the synthesizer section (86 s) that carries the journey
  *   for as long as it takes.
  */

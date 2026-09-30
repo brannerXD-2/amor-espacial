@@ -90,7 +90,7 @@ El archivo `.nojekyll` evita que Pages procese nada.
   - Se usa un elemento `<audio>` (suena aunque el iPhone tenga el interruptor de silencio) y se intenta arrancar en cualquier gesto que el navegador pueda aceptar (`pointerdown`, `pointerup`, `touchend`, `click`, `keydown`), reintentando tras cada rechazo. Las pantallas táctiles solo aceptan el *soltar* el dedo.
   - En iOS el volumen del elemento de audio no se puede cambiar: ahí la música solo está encendida o apagada, por eso la pista ya trae su propio inicio y final suaves.
   - Si el navegador bloquea el arranque, el icono de sonido de la esquina late en dorado; un toque lo inicia. También responde a los controles de la pantalla de bloqueo.
-  - **La música sigue la historia, no el reloj.** Suena en bucle la parte hipnótica hasta que aparece «Ven. Te muestro lo que veo desde aquí.»; entonces pasa a la parte de los sintetizadores, que entra unos 2 s después, cuando la cámara desciende al viaje. Esa entrada dura 2:42 y se sigue, sin que haga falta hacer nada, con un bucle largo (86 s) de la misma sección, para que la música acompañe el viaje el tiempo que haga falta. El bucle hipnótico vuelve en el final. Así no importa lo rápido o lento que lea cada quien.
+  - **La música sigue la historia, no el reloj.** Suena en bucle la parte hipnótica hasta que aparece «Ven. Te muestro lo que veo desde aquí.»; entonces, **en el mismo instante en que se toca para continuar** y arranca la animación de descenso, se corta el bucle y entran los sintetizadores. Esa entrada dura 2:40 y se sigue, sin que haga falta hacer nada, con un bucle largo (86 s) de la misma sección, para que la música acompañe el viaje el tiempo que haga falta. El bucle hipnótico vuelve en el final. Así no importa lo rápido o lento que lea cada quien.
   - Esta parte no se pudo probar en un iPhone real; se probó con un reproductor simulado que imita las reglas de gesto de Chrome y Safari.
 
 ### Modo de pruebas
@@ -110,14 +110,14 @@ Con `?debug` en la URL se expone `window.app` y se puede saltar a un capítulo:
 
 - **Música**: «Space Ambience» de Alexander Nakarada (CreatorChords), [creatorchords.com](https://creatorchords.com). Royalty Free Music by [free-stock-music.com](https://www.free-stock-music.com). Licencia [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/). Cambios: recortada en tres partes, recomprimida a 96 kbps, con ajuste de volumen y fundidos.
   - `calma.mp3`: la parte hipnótica (de 0:05 a 0:48 del original) convertida en un bucle sin costuras con un fundido cruzado de 3 s.
-  - `sintesis.mp3`: de 0:53,1 a 3:35 (2:42); los sintetizadores entran 2,3 s después de empezar el archivo.
+  - `sintesis.mp3`: de 0:55,2 a 3:35 (2:40); los sintetizadores entran 0,15 s después de empezar el archivo.
   - `continuacion.mp3`: bucle sin costuras de la sección de sintetizadores (de 1:25 a 2:55 del original, fundido cruzado de 4 s).
 
   ```bash
   # bucle hipnótico
   ffmpeg -i original.mp3 -filter_complex "[0:a]atrim=8:45,asetpts=PTS-STARTPTS[mid];[0:a]atrim=45:48,asetpts=PTS-STARTPTS[tail];[0:a]atrim=5:8,asetpts=PTS-STARTPTS[head];[tail][head]acrossfade=d=3:c1=qsin:c2=qsin[xf];[mid][xf]concat=n=2:v=0:a=1,volume=-1dB[out]" -map "[out]" -c:a libmp3lame -b:a 96k -ar 44100 assets/audio/calma.mp3
   # sintetizadores
-  ffmpeg -ss 53.1 -t 161.9 -i original.mp3 -af "afade=t=in:st=0:d=0.5,volume=-4dB,afade=t=out:st=160.7:d=1.2" -c:a libmp3lame -b:a 96k -ar 44100 assets/audio/sintesis.mp3
+  ffmpeg -ss 55.21 -t 159.79 -i original.mp3 -af "afade=t=in:st=0:d=0.03,volume=-4dB,afade=t=out:st=158.6:d=1.2" -c:a libmp3lame -b:a 96k -ar 44100 assets/audio/sintesis.mp3
   # bucle largo de los sintetizadores
   ffmpeg -i original.mp3 -filter_complex "[0:a]atrim=89:171,asetpts=PTS-STARTPTS[mid];[0:a]atrim=171:175,asetpts=PTS-STARTPTS[tail];[0:a]atrim=85:89,asetpts=PTS-STARTPTS[head];[tail][head]acrossfade=d=4:c1=qsin:c2=qsin[xf];[mid][xf]concat=n=2:v=0:a=1,volume=-4dB[out]" -map "[out]" -c:a libmp3lame -b:a 96k -ar 44100 assets/audio/continuacion.mp3
   ```

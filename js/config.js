@@ -54,12 +54,16 @@ export const NEBULA = {
 };
 
 /**
- * The song, cut in two. `calm` is the hypnotic opening (40 s, seamless loop); `drop` starts
- * about 2.3 s before the synthesizers enter and runs to the end of the track.
+ * The song, cut in three so it can follow a reader of any pace:
+ * - `calm`: the hypnotic opening (40 s, seamless loop). Also used for the ending.
+ * - `drop`: starts about 2.3 s before the synthesizers enter and plays once (2:42).
+ * - `body`: a long seamless loop of the synthesizer section (86 s) that carries the journey
+ *   for as long as it takes.
  */
 export const AUDIO = {
   calm: 'assets/audio/calma.mp3',
   drop: 'assets/audio/sintesis.mp3',
+  body: 'assets/audio/continuacion.mp3',
 };
 
 export const READING = {

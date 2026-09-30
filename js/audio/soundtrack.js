@@ -14,11 +14,13 @@ const STORAGE_KEY = 'dos-puntos:sonido';
  * Some phones (iOS Safari) ignore `audio.volume`. There the music can only be on or off;
  * the files themselves already begin and end softly.
  *
- * The song is split in two so its big moment lands where the story wants it, whatever the
- * reader's pace: `calm` is the hypnotic opening as a seamless loop, `drop` is everything from
- * just before the synthesizers enter. `cue('drop')` moves from one to the other; when `drop`
- * ends the calm loop comes back. One <audio> element is reused (its `src` swaps), because
- * iOS lets an element that was started by a gesture keep playing later without one.
+ * The song is cut in three so its big moment lands where the story wants it, whatever the
+ * reader's pace: `calm` is the hypnotic opening as a seamless loop, `drop` starts just before
+ * the synthesizers enter and plays once, and `body` is a long seamless loop of the synthesizer
+ * section for the rest of the journey. `cue('drop')` starts the big moment (it hands over to
+ * `body` by itself); `cue('calm')` returns to the hypnotic loop. One <audio> element is reused
+ * (its `src` swaps), because iOS lets an element that was started by a gesture keep playing
+ * later without one.
  */
 export class Soundtrack {
   constructor(tracks) {
@@ -63,9 +65,9 @@ export class Soundtrack {
     this.el.addEventListener('error', () => {
       console.warn('[sonido] no se pudo cargar la música', this.el.error?.code);
     });
-    // The synth section plays once; afterwards the hypnotic loop returns.
+    // The big moment plays once and hands over to the long loop, unless the ending asked for calm.
     this.el.addEventListener('ended', () => {
-      if (this.track === 'drop') this.cue('calm');
+      if (this.track === 'drop') this.cue(this.wantedTrack === 'calm' ? 'calm' : 'body');
     });
 
     // Every event a browser may count as "a real gesture". Safari only accepts touchend / click,
@@ -157,11 +159,13 @@ export class Soundtrack {
     );
   }
 
-  /** Warms the HTTP cache with the second file so the switch happens without a wait. */
+  /** Warms the HTTP cache with the other files so switching happens without a wait. */
   #prefetchDrop() {
     if (this.prefetched) return;
     this.prefetched = true;
-    fetch(this.tracks.drop).catch(() => {});
+    fetch(this.tracks.drop)
+      .then(() => fetch(this.tracks.body))
+      .catch(() => {});
   }
 
   /**
@@ -192,7 +196,7 @@ export class Soundtrack {
     if (!this.el.paused) this.expectPause = true; // changing src stops playback by itself
     this.track = name;
     this.el.src = this.tracks[name];
-    this.el.loop = name === 'calm';
+    this.el.loop = name !== 'drop';
   }
 
   #swapTrack(name) {

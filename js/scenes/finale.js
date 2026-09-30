@@ -106,6 +106,7 @@ export async function runFinale(app, system) {
   hud.hint('');
   hud.setLabel('');
   hud.showMap(false);
+  sound.cue('calm'); // the ending belongs to the hypnotic loop
   sound.setLevel(0.3);
 
   const worldStart = world.alpha;

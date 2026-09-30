@@ -138,14 +138,26 @@ export async function runDistancia(app, journey) {
   await fragments.play(line);
   hud.setLabel('');
 
-  // Down from the map into the journey.
+  // Down from the map into the journey. "Ven" is the cue for the synthesizers: the music
+  // leaves its hypnotic loop and, a couple of seconds later, the big moment arrives as the
+  // camera settles at Branner's point — whatever pace the reader took to get here.
   await fragments.play(dive);
+  app.sound.cue('drop');
+  app.sound.setLevel(0.7);
   tween(2600, (e) => {
     thread.ruler = 1 - e;
     thread.alpha = 1 - e;
   });
+  if (!app.reduced) pulseWarp(stage);
   const [ax, ay] = [journey.a.x, journey.a.y];
   await camera.flyTo({ x: ax, y: ay, zoom: 1, anchorY: 0.5 }, app.reduced ? 700 : 3600);
   stage.remove(thread);
   return thread;
+}
+
+/** One quick surge of starlight, timed to the moment the synthesizers enter. */
+async function pulseWarp(stage) {
+  await sleep(2500);
+  await tween(1500, (e) => (stage.starfield.warp = Math.sin(Math.PI * e) * 0.5));
+  stage.starfield.warp = 0;
 }

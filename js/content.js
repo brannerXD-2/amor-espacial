@@ -108,7 +108,7 @@ export const CONTENT = {
     intro: [['Ahora déjame enseñarte algo que a veces imagino.']],
     hint: 'mueve el dedo en círculos',
     keepHint: 'sigue girando, ya casi',
-    beaconHint: 'toca la luz blanca',
+    beaconHint: 'toca la luz blanca del centro',
     /** Shown automatically as the two points get closer (progress 0..1). */
     milestones: [
       { at: 0.08, lines: ['Quizá un día ya no tengamos que imaginar ciertos momentos.', 'Simplemente estarán pasando.'] },

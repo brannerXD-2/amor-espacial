@@ -134,8 +134,9 @@ export class Hud {
   }
 
   /** Short instruction line at the bottom. Empty text hides it. */
-  hint(text) {
+  hint(text, { strong = false } = {}) {
     clearTimeout(this.hintTimer);
+    this.hintStrong = strong;
     if (!text) {
       this.hintEl.classList.remove('is-visible');
       return;
@@ -150,6 +151,7 @@ export class Hud {
 
   #writeHint(text) {
     this.hintEl.textContent = text;
+    this.hintEl.classList.toggle('is-strong', Boolean(this.hintStrong));
     // next frame so the transition runs from the hidden state
     requestAnimationFrame(() => this.hintEl.classList.add('is-visible'));
   }

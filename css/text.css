@@ -134,6 +134,13 @@
   transform: none;
 }
 
+/* For the few instructions the story cannot go on without. */
+.hint.is-strong {
+  color: var(--ink);
+  font-size: 0.8125rem;
+  text-shadow: 0 0 14px rgba(4, 5, 11, 0.95);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .line,
   .line.is-in,

@@ -90,6 +90,7 @@ El archivo `.nojekyll` evita que Pages procese nada.
   - Se usa un elemento `<audio>` (suena aunque el iPhone tenga el interruptor de silencio) y se intenta arrancar en cualquier gesto que el navegador pueda aceptar (`pointerdown`, `pointerup`, `touchend`, `click`, `keydown`), reintentando tras cada rechazo. Las pantallas táctiles solo aceptan el *soltar* el dedo.
   - En iOS el volumen del elemento de audio no se puede cambiar: ahí la música solo está encendida o apagada, por eso la pista ya trae su propio inicio y final suaves.
   - Si el navegador bloquea el arranque, el icono de sonido de la esquina late en dorado; un toque lo inicia. También responde a los controles de la pantalla de bloqueo.
+  - **La música sigue la historia, no el reloj.** Suena en bucle la parte hipnótica hasta que aparece «Ven. Te muestro lo que veo desde aquí.»; entonces pasa a la parte de los sintetizadores, que entra unos 2 s después, cuando la cámara desciende al viaje. Al terminar esa parte (unos 3:40) vuelve el bucle hipnótico, que también acompaña el final. Así no importa lo rápido o lento que lea cada quien.
   - Esta parte no se pudo probar en un iPhone real; se probó con un reproductor simulado que imita las reglas de gesto de Chrome y Safari.
 
 ### Modo de pruebas
@@ -107,11 +108,15 @@ Con `?debug` en la URL se expone `window.app` y se puede saltar a un capítulo:
 
 ## Créditos y licencias
 
-- **Música**: «Space Ambience» de Alexander Nakarada (CreatorChords), [creatorchords.com](https://creatorchords.com). Royalty Free Music by [free-stock-music.com](https://www.free-stock-music.com). Licencia [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/). Cambios: recomprimida a 96 kbps, compresión suave, ajuste de volumen y fundidos de entrada y salida.
-  El original se procesó con:
+- **Música**: «Space Ambience» de Alexander Nakarada (CreatorChords), [creatorchords.com](https://creatorchords.com). Royalty Free Music by [free-stock-music.com](https://www.free-stock-music.com). Licencia [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/). Cambios: recortada en dos partes, recomprimida a 96 kbps, con ajuste de volumen y fundidos.
+  - `calma.mp3`: la parte hipnótica (de 0:05 a 0:48 del original) convertida en un bucle sin costuras con un fundido cruzado de 3 s.
+  - `sintesis.mp3`: desde 0:53,1 hasta el final; los sintetizadores entran 2,3 s después de empezar el archivo.
 
   ```bash
-  ffmpeg -i original.mp3 -af "acompressor=threshold=-20dB:ratio=2.2:attack=200:release=800,volume=-1dB,afade=t=in:st=0:d=2,afade=t=out:st=271:d=4.5" -c:a libmp3lame -b:a 96k -ar 44100 assets/audio/space-ambience.mp3
+  # bucle hipnótico
+  ffmpeg -i original.mp3 -filter_complex "[0:a]atrim=8:45,asetpts=PTS-STARTPTS[mid];[0:a]atrim=45:48,asetpts=PTS-STARTPTS[tail];[0:a]atrim=5:8,asetpts=PTS-STARTPTS[head];[tail][head]acrossfade=d=3:c1=qsin:c2=qsin[xf];[mid][xf]concat=n=2:v=0:a=1,volume=-1dB[out]" -map "[out]" -c:a libmp3lame -b:a 96k -ar 44100 assets/audio/calma.mp3
+  # sintetizadores
+  ffmpeg -ss 53.1 -i original.mp3 -af "afade=t=in:st=0:d=0.5,volume=-4dB,afade=t=out:st=217.9:d=4.5" -c:a libmp3lame -b:a 96k -ar 44100 assets/audio/sintesis.mp3
   ```
 - **Tipografías** (SIL Open Font License 1.1, servidas desde `assets/fonts/`): Instrument Serif, Geist Mono y DM Mono.
 - Todo lo demás (estrellas, nebulosas, órbitas) se dibuja en código; no hay imágenes de terceros.

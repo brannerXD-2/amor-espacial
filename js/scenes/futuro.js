@@ -184,7 +184,7 @@ export async function runFuturo(app) {
       const stalled = idle > 6 && !fragments.busy && system.progress > 0.04 && raw < 0.99;
       if (stalled && !reminding) {
         reminding = true;
-        hud.hint(CONTENT.futuro.keepHint);
+        hud.hint(CONTENT.futuro.keepHint, { strong: true });
       } else if (reminding && s.down) {
         reminding = false;
         hud.hint('');
@@ -228,10 +228,11 @@ async function touchTheLight(app) {
   const beacon = stage.add(new Beacon());
   await tweenProp(beacon, 'alpha', 1, 2600);
   await sleep(900);
-  hud.hint(CONTENT.futuro.beaconHint);
+  hud.hint(CONTENT.futuro.beaconHint, { strong: true });
 
+  // Pressing it is enough — a quick tap, a long press or the keyboard all count.
   await new Promise((resolve) => {
-    const off = input.on('tap', ({ x, y }) => {
+    const off = input.on('down', ({ x, y }) => {
       const [cx, cy] = beacon.center(stage);
       const byKey = input.state.source === 'key';
       if (byKey || dist(x, y, cx, cy) < beacon.hitRadius(stage)) {

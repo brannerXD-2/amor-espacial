@@ -12,12 +12,24 @@ const STORAGE_KEY = 'dos-puntos:sonido';
  * tries again after a refusal.
  *
  * Some phones (iOS Safari) ignore `audio.volume`. There the music can only be on or off;
- * the file itself already begins and ends softly.
+ * the files themselves already begin and end softly.
+ *
+ * The song is split in two so its big moment lands where the story wants it, whatever the
+ * reader's pace: `calm` is the hypnotic opening as a seamless loop, `drop` is everything from
+ * just before the synthesizers enter. `cue('drop')` moves from one to the other; when `drop`
+ * ends the calm loop comes back. One <audio> element is reused (its `src` swaps), because
+ * iOS lets an element that was started by a gesture keep playing later without one.
  */
 export class Soundtrack {
-  constructor(src) {
+  constructor(tracks) {
+    this.tracks = tracks; // { calm: url, drop: url }
+    this.track = 'calm'; // what the element currently holds
+    this.wantedTrack = 'calm';
+    this.swap = null; // { to, busy } while changing track
+    this.prefetched = false;
+
     this.el = new Audio();
-    this.el.src = src;
+    this.el.src = tracks.calm;
     this.el.loop = true;
     this.el.preload = 'none';
     this.el.setAttribute('playsinline', '');
@@ -38,6 +50,7 @@ export class Soundtrack {
 
     // Something else paused us (phone call, headphones unplugged): show it and allow a restart.
     this.el.addEventListener('pause', () => {
+      if (this.el.ended) return; // reached the end of the synth section: not an interruption
       if (this.expectPause) {
         this.expectPause = false;
         return;
@@ -49,6 +62,10 @@ export class Soundtrack {
     });
     this.el.addEventListener('error', () => {
       console.warn('[sonido] no se pudo cargar la música', this.el.error?.code);
+    });
+    // The synth section plays once; afterwards the hypnotic loop returns.
+    this.el.addEventListener('ended', () => {
+      if (this.track === 'drop') this.cue('calm');
     });
 
     // Every event a browser may count as "a real gesture". Safari only accepts touchend / click,
@@ -129,11 +146,73 @@ export class Soundtrack {
         this.starting = false;
         this.started = true;
         this.#announce();
+        this.#prefetchDrop();
         this.#emit();
+        if (this.track !== this.wantedTrack) this.cue(this.wantedTrack);
       },
       () => {
         // Refused or interrupted: stay quiet and try again on the next gesture.
         this.starting = false;
+      },
+    );
+  }
+
+  /** Warms the HTTP cache with the second file so the switch happens without a wait. */
+  #prefetchDrop() {
+    if (this.prefetched) return;
+    this.prefetched = true;
+    fetch(this.tracks.drop).catch(() => {});
+  }
+
+  /**
+   * Switches between 'calm' (hypnotic loop) and 'drop' (the synthesizers). Safe to call any
+   * time; if the music is not playing yet the choice is simply remembered.
+   */
+  cue(name) {
+    this.wantedTrack = name;
+    if (name === this.track && !this.swap) return;
+    if (!this.started) {
+      if (!this.starting) this.#load(name);
+      return;
+    }
+    if (this.swap) {
+      if (!this.swap.busy) this.swap.to = name;
+      return;
+    }
+    if (!this.canFade) {
+      this.swap = { to: name, busy: true };
+      this.#swapTrack(name);
+      return;
+    }
+    this.swap = { to: name, busy: false }; // update() fades out, then swaps
+  }
+
+  /** Points the element at a track without playing it. */
+  #load(name) {
+    if (!this.el.paused) this.expectPause = true; // changing src stops playback by itself
+    this.track = name;
+    this.el.src = this.tracks[name];
+    this.el.loop = name === 'calm';
+  }
+
+  #swapTrack(name) {
+    const { el } = this;
+    this.#load(name);
+    if (this.canFade) {
+      el.volume = 0;
+      this.current = 0;
+    }
+    Promise.resolve(el.play()).then(
+      () => {
+        this.swap = null;
+        this.expectPause = false;
+        if (this.track !== this.wantedTrack) this.cue(this.wantedTrack);
+      },
+      () => {
+        // Refused (a browser that wants a fresh gesture): the next gesture restarts it.
+        this.swap = null;
+        this.started = false;
+        this.#emit();
       },
     );
   }
@@ -194,6 +273,18 @@ export class Soundtrack {
 
   update(dt) {
     if (!this.started || !this.canFade || this.suspended) return;
+
+    // Changing track: fade the current one out, swap, and let the new one rise from silence.
+    if (this.swap && !this.swap.busy) {
+      this.current = damp(this.current, 0, 6, dt);
+      this.el.volume = clamp(this.current);
+      if (this.current < 0.03) {
+        this.swap.busy = true;
+        this.#swapTrack(this.swap.to);
+      }
+      return;
+    }
+
     const target = this.wanted ? this.level : 0;
     this.current = damp(this.current, target, 0.7, dt);
     this.el.volume = clamp(this.current);

@@ -35,6 +35,7 @@ function skipTo(app, { journey, points, world }, from, node) {
   veil.classList.add('is-clear');
   stage.setBackdropBrightness(1);
   sound.setLevel(0.55);
+  if (from === 'explore' || from === 'futuro') sound.cue('drop'); // as if "Ven" had already happened
   points.a.alpha = 1;
   points.b.alpha = 1;
   const done = from === 'explore' ? node : journey.nodes.length;

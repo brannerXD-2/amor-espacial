@@ -1,4 +1,5 @@
 import { Soundtrack } from './audio/soundtrack.js';
+import { AUDIO } from './config.js';
 import { Stage } from './engine/stage.js';
 import { Loop } from './engine/loop.js';
 import { Input } from './input/pointer.js';
@@ -22,7 +23,7 @@ async function boot() {
 
   const input = new Input();
   const tilt = new Tilt(stage);
-  const sound = new Soundtrack('assets/audio/space-ambience.mp3');
+  const sound = new Soundtrack(AUDIO);
   const hud = new Hud(sound, tilt);
   const fragments = new Fragments(
     {

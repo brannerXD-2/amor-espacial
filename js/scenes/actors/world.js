@@ -3,8 +3,6 @@ import { drawGlow, drawLine, drawPoint } from '../../engine/sprites.js';
 import { NODE_MODULES } from '../nodes/index.js';
 import { clamp, invLerp, rgba, smoothstep, TAU } from '../../util/math.js';
 
-const HIDDEN_FLOOR = 0.2; // how visible a thought stays once it has been found
-
 /**
  * Everything that lives on the trip itself: the ideas as stars (locked, active,
  * finished as small constellations), the faint thread between finished ones,
@@ -55,10 +53,13 @@ export class WorldActor {
 
     const { camera } = stage;
     const [far, near] = JOURNEY.hiddenReveal;
+    // The hidden thoughts belong to the close-up sky. Zoomed out (the map, the ending) they
+    // would all pile up in the middle of the screen as ghost text, so they stay hidden.
+    const zoomGate = smoothstep(0.55, 0.9, camera.zoom);
     for (const phrase of this.journey.phrases) {
       const d = Math.hypot(camera.x - phrase.x, camera.y - phrase.y);
-      const target = smoothstep(0, 1, invLerp(far, near, d));
-      phrase.reveal += (target - phrase.reveal) * Math.min(1, dt * 3);
+      const target = smoothstep(0, 1, invLerp(far, near, d)) * zoomGate;
+      phrase.reveal = zoomGate <= 0 ? 0 : phrase.reveal + (target - phrase.reveal) * Math.min(1, dt * 3);
       if (!phrase.found && phrase.reveal > 0.62) {
         phrase.seen += dt;
         if (phrase.seen > 1.2) {
@@ -132,15 +133,20 @@ export class WorldActor {
   }
 
   #drawPhrases(ctx, stage, t, alpha) {
+    const zoomGate = smoothstep(0.55, 0.9, stage.camera.zoom);
+    if (zoomGate <= 0.01) return;
+
     for (const phrase of this.journey.phrases) {
       const [x, y] = stage.camera.toScreen(phrase.x, phrase.y);
       if (x < -220 || x > stage.w + 220 || y < -120 || y > stage.h + 120) continue;
 
+      // A speck marks where a thought is hiding; once read it only leaves a dim star behind.
       const twinkle = 0.75 + 0.25 * Math.sin(t * 1.3 + phrase.index * 2.1);
       const speck = phrase.found ? 0.2 : 0.42 * twinkle;
-      drawPoint(ctx, x, y, { r: 1.3, a: alpha * speck, rgb: COLORS.white, halo: 5 });
+      drawPoint(ctx, x, y, { r: 1.3, a: alpha * speck * zoomGate, rgb: COLORS.white, halo: 5 });
 
-      const visible = Math.max(phrase.reveal, phrase.found ? HIDDEN_FLOOR : 0) * this.phraseFade;
+      // The words themselves only show while you are close to them, never as leftovers.
+      const visible = phrase.reveal * this.phraseFade * zoomGate;
       if (visible < 0.02) continue;
       ctx.globalAlpha = alpha * visible * 0.92;
       ctx.fillStyle = 'rgb(236,232,223)';

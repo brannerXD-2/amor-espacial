@@ -1,0 +1,245 @@
+/* Header: two small buttons on the sides, a tiny map of the journey in the middle. */
+
+.hud {
+  position: fixed;
+  top: calc(var(--safe-top) + 10px);
+  left: max(10px, var(--safe-left));
+  right: max(10px, var(--safe-right));
+  z-index: 8;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  opacity: 0;
+  transition: opacity 2s var(--ease-out);
+  pointer-events: none;
+}
+
+.hud.is-visible {
+  opacity: 1;
+}
+
+.hud:not(.is-visible) .hud__btn {
+  pointer-events: none;
+}
+
+.hud__btn {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--ink-2);
+  transition: color 0.4s;
+}
+
+.hud__btn:hover {
+  color: var(--ink);
+}
+
+.hud__btn[hidden] {
+  display: block;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.hud__btn[aria-pressed='true'].hud__btn--tilt {
+  color: var(--gold);
+}
+
+.hud__map {
+  flex: 1;
+  max-width: 200px;
+  margin-top: 8px;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.hud__map svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.hud__label {
+  min-height: 1em;
+  font-family: var(--font-label);
+  font-weight: 400;
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  color: var(--ink-3);
+  opacity: 0;
+  transition: opacity 1.2s var(--ease-out);
+}
+
+.hud__label.is-visible {
+  opacity: 1;
+}
+
+/* Sound: three thin bars that breathe when the music is on. */
+.bars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 14px;
+}
+
+.bars i {
+  width: 1.5px;
+  height: 100%;
+  background: currentColor;
+  transform-origin: center;
+  transform: scaleY(0.18);
+  transition: transform 0.5s var(--ease-out);
+}
+
+.hud__btn--sound[aria-pressed='true'] .bars i {
+  animation: bars 2.4s ease-in-out infinite;
+}
+
+.hud__btn--sound[aria-pressed='true'] .bars i:nth-child(2) {
+  animation-delay: -0.8s;
+}
+
+.hud__btn--sound[aria-pressed='true'] .bars i:nth-child(3) {
+  animation-delay: -1.6s;
+}
+
+.hud__btn--sound[data-attention='true'] {
+  color: var(--gold);
+}
+
+.hud__btn--sound[data-attention='true'] .bars i {
+  animation: attention 2.4s ease-in-out infinite;
+}
+
+.hud__btn--sound[data-attention='true'] .bars i:nth-child(2) {
+  animation-delay: -0.4s;
+}
+
+.hud__btn--sound[data-attention='true'] .bars i:nth-child(3) {
+  animation-delay: -0.8s;
+}
+
+@keyframes attention {
+  0%,
+  100% {
+    transform: scaleY(0.18);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(0.55);
+    opacity: 1;
+  }
+}
+
+@keyframes bars {
+  0%,
+  100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+/* Map SVG parts (classes set from JS) */
+.map-line {
+  stroke: var(--thread);
+  stroke-width: 0.6;
+  fill: none;
+  opacity: 0.55;
+}
+
+.map-node {
+  fill: var(--ink);
+  opacity: 0.25;
+  transition:
+    opacity 1.2s var(--ease-out),
+    r 1.2s var(--ease-out);
+}
+
+.map-node.is-lit {
+  opacity: 0.95;
+}
+
+.map-node--a {
+  fill: var(--gold);
+  opacity: 0.95;
+}
+
+.map-node--b {
+  fill: var(--ice);
+  opacity: 0.95;
+}
+
+.map-here {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 0.6;
+  opacity: 0.55;
+}
+
+/* Compass: a dot on the edge of the screen that points to the next star. */
+.compass {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  z-index: 7;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1s var(--ease-out);
+}
+
+.compass.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.compass[hidden] {
+  display: none;
+}
+
+.compass__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow:
+    0 0 0 7px rgba(236, 232, 223, 0.07),
+    0 0 16px 4px rgba(236, 232, 223, 0.22);
+  animation: pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud__btn--sound[data-attention='true'] .bars i {
+    animation: none;
+    transform: scaleY(0.5);
+  }
+
+  .hud__btn--sound[aria-pressed='true'] .bars i {
+    animation: none;
+    transform: scaleY(0.7);
+  }
+
+  .compass__dot {
+    animation: none;
+  }
+}

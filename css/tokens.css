@@ -1,0 +1,66 @@
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('../assets/fonts/instrument-serif-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('../assets/fonts/instrument-serif-400-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  src: url('../assets/fonts/dm-mono-300.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('../assets/fonts/geist-mono-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --space-0: #04050b;
+  --space-1: #0a0d1c;
+
+  --ink: #ece8df;
+  --ink-2: rgba(236, 232, 223, 0.66);
+  --ink-3: rgba(236, 232, 223, 0.42);
+
+  --gold: #f1c58b;
+  --ice: #a8c8ff;
+  --thread: #c9d3ff;
+
+  --font-serif: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-mono: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --font-label: 'Geist Mono', 'DM Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+
+  --gutter: 28px;
+  --text-size: clamp(1.7rem, 1.25rem + 2.2vw, 2.55rem);
+}
+
+/* Phones held sideways: the story area is short, so the type steps down. */
+@media (max-height: 520px) and (orientation: landscape) {
+  :root {
+    --text-size: clamp(1.15rem, 5.2vh, 1.6rem);
+  }
+}

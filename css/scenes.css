@@ -1,0 +1,346 @@
+/* ---------- Umbral (entrance) ---------- */
+
+.umbral {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.umbral__title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 30%;
+  margin: 0;
+  padding: 0 max(var(--gutter), var(--safe-left));
+  text-align: center;
+  font-weight: 400;
+  font-size: calc(var(--text-size) * 1.05);
+  line-height: 1.16;
+  text-wrap: balance;
+}
+
+.word {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(12px);
+  transform: translateY(8px);
+  transition:
+    opacity 1.5s var(--ease-out),
+    filter 1.5s var(--ease-out),
+    transform 1.5s var(--ease-out);
+}
+
+.word.is-in {
+  opacity: 1;
+  filter: blur(0);
+  transform: none;
+}
+
+.word.is-out {
+  opacity: 0;
+  filter: blur(8px);
+  transition-duration: 1.1s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .word,
+  .word.is-in,
+  .word.is-out {
+    filter: none;
+    transform: none;
+  }
+}
+
+.umbral__hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--safe-bottom) + 15%);
+  margin: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ink-2);
+  opacity: 0;
+  transition: opacity 1.6s var(--ease-out);
+}
+
+.umbral__sound {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--safe-bottom) + 6%);
+  transform: translateX(-50%);
+  min-width: 132px;
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 0.6875rem;
+  color: var(--ink-3);
+  opacity: 0;
+  transition:
+    opacity 1.6s var(--ease-out),
+    color 0.4s;
+}
+
+.umbral__sound::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: 2px;
+  opacity: 0.4;
+}
+
+.umbral__sound[aria-pressed='true'] {
+  color: var(--ink-2);
+}
+
+.umbral__sound[aria-pressed='true']::before {
+  background: var(--gold);
+  opacity: 1;
+}
+
+.umbral__hint.is-visible,
+.umbral__sound.is-visible {
+  opacity: 1;
+}
+
+.umbral.is-leaving .umbral__hint,
+.umbral.is-leaving .umbral__sound {
+  opacity: 0;
+  transition-duration: 0.8s;
+}
+
+.umbral[hidden] {
+  display: none;
+}
+
+/* ---------- Finale ---------- */
+
+.finale {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 52%;
+  z-index: 6;
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  padding: 0 max(var(--gutter), var(--safe-left));
+  text-align: center;
+  pointer-events: none;
+}
+
+.finale p {
+  margin: 0;
+  opacity: 0;
+  filter: blur(12px);
+  transform: translateY(8px);
+  transition:
+    opacity 2.6s var(--ease-out),
+    filter 2.6s var(--ease-out),
+    transform 2.6s var(--ease-out);
+  text-shadow: 0 0 30px rgba(4, 5, 11, 0.9);
+}
+
+.finale p.is-in {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+.finale__line {
+  font-size: calc(var(--text-size) * 1.02);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.finale__name {
+  margin-top: 0.7em !important;
+  font-size: clamp(2.9rem, 2rem + 6vw, 5rem);
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.finale__love {
+  margin-top: 0.7em !important;
+  font-size: calc(var(--text-size) * 1.12);
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.finale__sign {
+  margin-top: 1.1em !important;
+  font-size: clamp(1.2rem, 1rem + 0.8vw, 1.5rem);
+  color: var(--ink-2);
+}
+
+/* Short screens: lift the ending so the signature never touches the footer. */
+@media (max-height: 700px) {
+  .finale {
+    top: 46%;
+  }
+
+  .finale__name {
+    font-size: clamp(2.6rem, 2rem + 4vw, 3.6rem);
+  }
+}
+
+.finale__line.is-out {
+  opacity: 0.0;
+}
+
+/* ---------- Footer ---------- */
+
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--safe-bottom) + 8px);
+  z-index: 9;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 3s var(--ease-out);
+  pointer-events: none;
+}
+
+.footer.is-visible {
+  opacity: 1;
+}
+
+.footer__actions button {
+  pointer-events: none;
+}
+
+.footer.is-visible .footer__actions button {
+  pointer-events: auto;
+}
+
+.footer__made {
+  margin: 0;
+  font-family: var(--font-label);
+  font-weight: 400;
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
+  text-transform: none;
+  color: var(--ink-3);
+}
+
+.footer__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  color: var(--ink-3);
+}
+
+.footer__actions button {
+  min-height: 44px;
+  padding: 0 10px;
+  color: inherit;
+  transition: color 0.3s;
+}
+
+.footer__actions button:hover {
+  color: var(--ink);
+}
+
+/* Back link + found counter (free exploration) */
+
+.back {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--safe-bottom) + 8px);
+  transform: translateX(-50%);
+  z-index: 9;
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 0.6875rem;
+  color: var(--ink-3);
+  opacity: 0;
+  transition: opacity 1.4s var(--ease-out);
+}
+
+.back.is-visible {
+  opacity: 1;
+}
+
+.back[hidden],
+.found[hidden] {
+  display: none;
+}
+
+.found {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--safe-bottom) + 50px);
+  margin: 0;
+  text-align: center;
+  font-size: 0.6875rem;
+  color: var(--ink-3);
+  opacity: 0;
+  transition: opacity 1.4s var(--ease-out);
+}
+
+.found.is-visible {
+  opacity: 1;
+}
+
+/* ---------- Credits ---------- */
+
+.credits {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 24px max(24px, var(--safe-right)) calc(24px + var(--safe-bottom)) max(24px, var(--safe-left));
+  background: rgba(3, 4, 9, 0.97);
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-out);
+}
+
+.credits[hidden] {
+  display: none;
+}
+
+.credits.is-open {
+  opacity: 1;
+}
+
+.credits__panel {
+  max-width: 460px;
+  display: grid;
+  gap: 18px;
+  text-align: center;
+}
+
+.credits__title {
+  margin: 0;
+  font-size: 0.6875rem;
+  color: var(--ink-3);
+}
+
+.credits__text {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.credits__close {
+  justify-self: center;
+  min-height: 44px;
+  padding: 0 18px;
+  font-size: 0.6875rem;
+  color: var(--ink-2);
+}
